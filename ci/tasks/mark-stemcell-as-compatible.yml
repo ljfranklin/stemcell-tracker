@@ -14,4 +14,4 @@ params:
   PRODUCT_VERSION:
 
 run:
-  path: stemcell-tracker-resource/ci/mark-stemcell-as-compatible
+  path: stemcell-tracker-git/ci/mark-stemcell-as-compatible

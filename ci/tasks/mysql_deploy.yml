@@ -8,4 +8,4 @@ inputs:
   - name: stemcell-version-s3
 
 run:
-  path: stemcell-tracker-resource/ci/mysql_deploy
+  path: stemcell-tracker-git/ci/mysql_deploy
