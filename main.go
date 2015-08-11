@@ -11,9 +11,9 @@ type StemcellHandler struct {
 	stemcellMap map[string]map[string]string
 }
 
-func NewHandler() *StemcellHandler {
+func NewStemcellHandler(stemcellMap map[string]map[string]string) *StemcellHandler {
 	return &StemcellHandler{
-		stemcellMap: map[string]map[string]string{},
+		stemcellMap: stemcellMap,
 	}
 }
 
@@ -63,9 +63,50 @@ func (h *StemcellHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type BadgeHandler struct {
+	stemcellMap map[string]map[string]string
+}
+
+func NewBadgeHandler(stemcellMap map[string]map[string]string) *BadgeHandler {
+	return &BadgeHandler{
+		stemcellMap: stemcellMap,
+	}
+}
+
+func (h *BadgeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	productName := r.URL.Query()["product_name"][0]
+	productVersion := "latest"
+
+	switch r.Method {
+	case "GET":
+		versionMap := h.stemcellMap[productName]
+		stemcell := versionMap[productVersion]
+		badgeUrl := fmt.Sprintf("https://img.shields.io/badge/stemcell-%s-brightgreen.svg", stemcell)
+
+		fmt.Printf("Started url request: %s\n", badgeUrl)
+		badgeResp, err := http.Get(badgeUrl)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error fetching badge: %s", err), http.StatusInternalServerError)
+			return
+		}
+		fmt.Printf("Received badge response: %d\n", badgeResp.StatusCode)
+		badgeContents, err := ioutil.ReadAll(badgeResp.Body)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Error fetching badge: %s", err), http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Fprintf(w, string(badgeContents))
+	default:
+		http.Error(w, "Method not found", http.StatusBadRequest)
+	}
+}
+
 func main() {
 	fmt.Println("Hello Gophers!")
 
-	http.Handle("/stemcell", NewHandler())
+	stemcellMap := map[string]map[string]string{}
+	http.Handle("/stemcell", NewStemcellHandler(stemcellMap))
+	http.Handle("/badge", NewBadgeHandler(stemcellMap))
 	http.ListenAndServe(":8181", nil)
 }

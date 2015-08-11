@@ -132,4 +132,32 @@ var _ = Describe("StemcellTracker", func() {
 			Expect(string(contents)).To(Equal(expectedLatestStemcell))
 		}
 	})
+
+	XIt("redirects to a badge showing the latest stemcell", func() {
+		products := map[string]string{
+			"cf-mysql": "3026",
+			"cf-riak-cs": "3030",
+		}
+
+		for product, expectedStemcell := range products {
+			url := fmt.Sprintf("http://localhost:8181/stemcell?product_name=%s", product)
+			req, err := http.NewRequest("PUT", url, strings.NewReader(expectedStemcell))
+			Expect(err).ToNot(HaveOccurred())
+			resp, err := http.DefaultClient.Do(req)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(resp.StatusCode).To(Equal(http.StatusCreated))
+
+			badgeUrl := fmt.Sprintf("http://localhost:8181/badge?product_name=%s", product)
+			resp, err = http.Get(badgeUrl)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+			rawContents, err := ioutil.ReadAll(resp.Body)
+			Expect(err).ToNot(HaveOccurred())
+			contents := string(rawContents)
+
+			Expect(contents).To(ContainSubstring("stemcell"))
+			Expect(contents).To(ContainSubstring(expectedStemcell))
+		}
+	})
 })
