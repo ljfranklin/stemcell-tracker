@@ -7,21 +7,28 @@ import (
 )
 
 type StemcellHandler struct {
-	stemcellMap map[string]string
+	stemcellMap map[string]map[string]string
 }
 
 func NewHandler() *StemcellHandler {
 	return &StemcellHandler{
-		stemcellMap: map[string]string{},
+		stemcellMap: map[string]map[string]string{},
 	}
 }
 
 func (h *StemcellHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	productName := r.URL.Query()["product_name"][0]
+	productVersionParams := r.URL.Query()["product_version"]
+
+	productVersion := "latest"
+	if len(productVersionParams) > 0 {
+		productVersion = productVersionParams[0]
+	}
 
 	switch r.Method {
 	case "GET":
-		stemcell := h.stemcellMap[productName]
+		versionMap := h.stemcellMap[productName]
+		stemcell := versionMap[productVersion]
 		fmt.Fprintf(w, stemcell)
 	case "PUT":
 		bodyContents, err := ioutil.ReadAll(r.Body)
@@ -30,7 +37,11 @@ func (h *StemcellHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		h.stemcellMap[productName] = string(bodyContents)
+		if len(h.stemcellMap[productName]) == 0 {
+			h.stemcellMap[productName] = map[string]string{}
+		}
+
+		h.stemcellMap[productName][productVersion] = string(bodyContents)
 		w.WriteHeader(http.StatusCreated)
 	default:
 		http.Error(w, "Method not found", http.StatusBadRequest)

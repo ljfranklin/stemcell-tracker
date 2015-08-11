@@ -55,4 +55,45 @@ var _ = Describe("StemcellTracker", func() {
 			Expect(string(contents)).To(Equal(expectedStemcell))
 		}
 	})
+
+	It("PUTs then GETs the latest stemcell for the given products and versions", func() {
+		products := map[string]map[string]string{
+			"cf-mysql": map[string]string {
+				"21": "3019",
+				"22": "3030",
+			},
+			"cf-riak-cs": map[string]string {
+				"10": "3008",
+				"11": "3009",
+			},
+		}
+
+		for product, versionMap := range products {
+
+			//PUT all versions
+			for version, expectedStemcell := range versionMap {
+				url := fmt.Sprintf("http://localhost:8181/stemcell?product_name=%s&product_version=%s", product, version)
+				req, err := http.NewRequest("PUT", url, strings.NewReader(expectedStemcell))
+				Expect(err).ToNot(HaveOccurred())
+
+				resp, err := http.DefaultClient.Do(req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
+			}
+
+			//GET all versions
+			for version, expectedStemcell := range versionMap {
+				url := fmt.Sprintf("http://localhost:8181/stemcell?product_name=%s&product_version=%s", product, version)
+				resp, err := http.Get(url)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+				contents, err := ioutil.ReadAll(resp.Body)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(string(contents)).To(Equal(expectedStemcell))
+			}
+		}
+	})
 })
