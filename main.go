@@ -110,10 +110,10 @@ func (h *BadgeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	fmt.Println("Hello Gophers!")
-
 	stemcellMap := map[string]map[string]string{}
 	http.Handle("/stemcell", NewStemcellHandler(stemcellMap))
 	http.Handle("/badge", NewBadgeHandler(stemcellMap))
+
+	fmt.Println("Stemcell tracker is listening on port 8181...")
 	http.ListenAndServe(":8181", nil)
 }
