@@ -1,0 +1,10 @@
+[application]
+
+name = "stemcell-tracker"
+version = "0.0.1"
+authors = ["cf-core-services-eng@pivotal.io"]
+
+[dependencies]
+
+"github.com/onsi/ginkgo" = ""
+"github.com/onsi/gomega" = ""
