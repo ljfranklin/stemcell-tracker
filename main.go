@@ -88,20 +88,22 @@ func (h *BadgeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		stemcell := versionMap[productVersion]
 		badgeUrl := fmt.Sprintf("https://img.shields.io/badge/stemcell-%s-brightgreen.svg", stemcell)
 
-		fmt.Printf("Started url request: %s\n", badgeUrl)
+		fmt.Printf("Started badge request: %s\n", badgeUrl)
 		badgeResp, err := http.Get(badgeUrl)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error fetching badge: %s", err), http.StatusInternalServerError)
 			return
 		}
 		fmt.Printf("Received badge response: %d\n", badgeResp.StatusCode)
+
 		badgeContents, err := ioutil.ReadAll(badgeResp.Body)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Error fetching badge: %s", err), http.StatusInternalServerError)
 			return
 		}
 
-		fmt.Fprintf(w, string(badgeContents))
+		w.Header().Set("Content-Type", "image/svg+xml")
+		w.Write(badgeContents)
 	default:
 		http.Error(w, "Method not found", http.StatusBadRequest)
 	}

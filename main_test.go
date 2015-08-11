@@ -133,7 +133,7 @@ var _ = Describe("StemcellTracker", func() {
 		}
 	})
 
-	XIt("redirects to a badge showing the latest stemcell", func() {
+	It("redirects to a badge showing the latest stemcell", func() {
 		products := map[string]string{
 			"cf-mysql": "3026",
 			"cf-riak-cs": "3030",
@@ -156,6 +156,8 @@ var _ = Describe("StemcellTracker", func() {
 			Expect(err).ToNot(HaveOccurred())
 			contents := string(rawContents)
 
+			contentType := resp.Header.Get("Content-Type")
+			Expect(contentType).To(Equal("image/svg+xml"))
 			Expect(contents).To(ContainSubstring("stemcell"))
 			Expect(contents).To(ContainSubstring(expectedStemcell))
 		}
