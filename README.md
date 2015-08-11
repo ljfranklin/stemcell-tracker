@@ -1,3 +1,3 @@
 # stemcell-tracker
 
-This is an awesome Go projeect.
+Pivotal hackday project used to tracker stemcell compatibility across products
