@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"io/ioutil"
+	"strconv"
 )
 
 type StemcellHandler struct {
@@ -39,6 +40,20 @@ func (h *StemcellHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if len(h.stemcellMap[productName]) == 0 {
 			h.stemcellMap[productName] = map[string]string{}
+		}
+
+		if productVersion != "latest" {
+			//check if this versioned stemcell is higher than latest
+			latestVal, hasLatest := h.stemcellMap[productName]["latest"]
+			if hasLatest == false {
+				h.stemcellMap[productName]["latest"] = string(bodyContents)
+			} else {
+				latestStemcell, _ := strconv.Atoi(latestVal)
+				versionStemcell, _ := strconv.Atoi(string(bodyContents))
+				if versionStemcell > latestStemcell {
+					h.stemcellMap[productName]["latest"] = string(bodyContents)
+				}
+			}
 		}
 
 		h.stemcellMap[productName][productVersion] = string(bodyContents)

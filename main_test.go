@@ -96,4 +96,40 @@ var _ = Describe("StemcellTracker", func() {
 			}
 		}
 	})
+
+	It("PUTs stemcell by version then GETs without specifing version", func() {
+		products := map[string]map[string]string{
+			"cf-mysql": map[string]string {
+				"21": "3019",
+				"22": "3030",
+				"20": "3010",
+			},
+		}
+		expectedLatestStemcell := "3030"
+
+		for product, versionMap := range products {
+
+			//PUT all versions
+			for version, expectedStemcell := range versionMap {
+				url := fmt.Sprintf("http://localhost:8181/stemcell?product_name=%s&product_version=%s", product, version)
+				req, err := http.NewRequest("PUT", url, strings.NewReader(expectedStemcell))
+				Expect(err).ToNot(HaveOccurred())
+
+				resp, err := http.DefaultClient.Do(req)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
+			}
+
+			url := "http://localhost:8181/stemcell?product_name=cf-mysql"
+			resp, err := http.Get(url)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+			contents, err := ioutil.ReadAll(resp.Body)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(string(contents)).To(Equal(expectedLatestStemcell))
+		}
+	})
 })
