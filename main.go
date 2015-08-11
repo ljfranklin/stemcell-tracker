@@ -81,13 +81,14 @@ func (h *BadgeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		versionMap, foundProduct := h.stemcellMap[productName]
-		if foundProduct == false {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
 
-		stemcell := versionMap[productVersion]
-		badgeUrl := fmt.Sprintf("https://img.shields.io/badge/stemcell-%s-brightgreen.svg", stemcell)
+		var badgeUrl string
+		if foundProduct == false {
+			badgeUrl = "https://img.shields.io/badge/stemcell-unknown-lightgrey.svg"
+		} else {
+			stemcell := versionMap[productVersion]
+			badgeUrl = fmt.Sprintf("https://img.shields.io/badge/stemcell-%s-brightgreen.svg", stemcell)
+		}
 
 		fmt.Printf("Started badge request: %s\n", badgeUrl)
 		badgeResp, err := http.Get(badgeUrl)

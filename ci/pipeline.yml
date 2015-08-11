@@ -15,12 +15,18 @@ resources:
     uri: https://github.com/ljfranklin/stemcell-tracker.git
     branch: master
 
+- name: timer
+  type: time
+  source:
+    interval: 1m
+
 jobs:
 - name: deploy-and-test-mysql
   plan:
     - get: stemcell-version-s3
       trigger: true
     - get: stemcell-tracker-git
+    - get: timer
     - task: deploy-and-test-mysql
       file: stemcell-tracker-git/ci/tasks/mysql_deploy.yml
 
@@ -31,6 +37,9 @@ jobs:
       trigger: true
     - get: stemcell-tracker-git
       passed: [deploy-and-test-mysql]
+    - get: timer
+      passed: [deploy-and-test-mysql]
+      trigger: true
     - task: mark-stemcell-as-compatible
       file: stemcell-tracker-git/ci/tasks/mark-stemcell-as-compatible.yml
       config:
