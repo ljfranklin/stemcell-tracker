@@ -3,6 +3,8 @@ resources:
 - name: stemcell-version-s3
   type: s3
   source:
+    access_key_id: {{access_key_id}}
+    secret_access_key: {{secret_access_key}}
     bucket: stemcell-tracker-hackday-bucket
     region_name: us-east-1
     versioned_file: stemcell_version
@@ -10,7 +12,7 @@ resources:
 - name: stemcell-tracker-git
   type: git
   source:
-    uri: git@github.com:ljfranklin/stemcell-tracker.git
+    uri: https://github.com/ljfranklin/stemcell-tracker.git
     branch: master
 
 jobs:
@@ -20,7 +22,7 @@ jobs:
       trigger: true
     - get: stemcell-tracker-git
     - task: deploy-and-test-mysql
-      file: stemcell-tracker-resource/ci/task/mysql_deploy.yml
+      file: stemcell-tracker-git/ci/tasks/mysql_deploy.yml
 
 - name: mark-stemcell-as-compatible
   plan:
@@ -30,7 +32,7 @@ jobs:
     - get: stemcell-tracker-git
       passed: [deploy-and-test-mysql]
     - task: mark-stemcell-as-compatible
-      file: stemcell-tracker-resource/ci/task/mark-stemcell-as-compatible.yml
+      file: stemcell-tracker-git/ci/tasks/mark-stemcell-as-compatible.yml
       config:
         params:
           STEMCELL_TRACKER_URL: http://stemcell-tracker-hackday.cfapps.io
