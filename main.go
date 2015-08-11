@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"io/ioutil"
 	"strconv"
+	"os"
 )
 
 type StemcellHandler struct {
@@ -110,10 +111,15 @@ func (h *BadgeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		port = "8181"
+	}
+
 	stemcellMap := map[string]map[string]string{}
 	http.Handle("/stemcell", NewStemcellHandler(stemcellMap))
 	http.Handle("/badge", NewBadgeHandler(stemcellMap))
 
-	fmt.Println("Stemcell tracker is listening on port 8181...")
-	http.ListenAndServe(":8181", nil)
+	fmt.Printf("Stemcell tracker is listening on port %s...\n", port)
+	http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 }

@@ -10,15 +10,23 @@ import (
 	"time"
 	"fmt"
 	"strings"
+	"os"
 )
 
 var _ = Describe("StemcellTracker", func() {
 
-	var session *gexec.Session
+	var (
+		session *gexec.Session
+		host string
+	)
 
 	BeforeEach(func() {
+		port := "8282"
+		host = fmt.Sprintf("http://localhost:%s", port)
+		err := os.Setenv("PORT", port)
+		Expect(err).ShouldNot(HaveOccurred())
+
 		command := exec.Command(pathToBinary)
-		var err error
 		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ShouldNot(HaveOccurred())
 		time.Sleep(1 * time.Second)
@@ -36,7 +44,7 @@ var _ = Describe("StemcellTracker", func() {
 		}
 
 		for product, expectedStemcell := range products {
-			url := fmt.Sprintf("http://localhost:8181/stemcell?product_name=%s", product)
+			url := fmt.Sprintf("%s/stemcell?product_name=%s", host, product)
 			req, err := http.NewRequest("PUT", url, strings.NewReader(expectedStemcell))
 			Expect(err).ToNot(HaveOccurred())
 
@@ -72,7 +80,7 @@ var _ = Describe("StemcellTracker", func() {
 
 			//PUT all versions
 			for version, expectedStemcell := range versionMap {
-				url := fmt.Sprintf("http://localhost:8181/stemcell?product_name=%s&product_version=%s", product, version)
+				url := fmt.Sprintf("%s/stemcell?product_name=%s&product_version=%s", host, product, version)
 				req, err := http.NewRequest("PUT", url, strings.NewReader(expectedStemcell))
 				Expect(err).ToNot(HaveOccurred())
 
@@ -83,7 +91,7 @@ var _ = Describe("StemcellTracker", func() {
 
 			//GET all versions
 			for version, expectedStemcell := range versionMap {
-				url := fmt.Sprintf("http://localhost:8181/stemcell?product_name=%s&product_version=%s", product, version)
+				url := fmt.Sprintf("%s/stemcell?product_name=%s&product_version=%s", host, product, version)
 				resp, err := http.Get(url)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -111,7 +119,7 @@ var _ = Describe("StemcellTracker", func() {
 
 			//PUT all versions
 			for version, expectedStemcell := range versionMap {
-				url := fmt.Sprintf("http://localhost:8181/stemcell?product_name=%s&product_version=%s", product, version)
+				url := fmt.Sprintf("%s/stemcell?product_name=%s&product_version=%s", host, product, version)
 				req, err := http.NewRequest("PUT", url, strings.NewReader(expectedStemcell))
 				Expect(err).ToNot(HaveOccurred())
 
@@ -120,7 +128,7 @@ var _ = Describe("StemcellTracker", func() {
 				Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 			}
 
-			url := "http://localhost:8181/stemcell?product_name=cf-mysql"
+			url := fmt.Sprintf("%s/stemcell?product_name=cf-mysql", host)
 			resp, err := http.Get(url)
 			Expect(err).ToNot(HaveOccurred())
 
@@ -140,14 +148,14 @@ var _ = Describe("StemcellTracker", func() {
 		}
 
 		for product, expectedStemcell := range products {
-			url := fmt.Sprintf("http://localhost:8181/stemcell?product_name=%s", product)
+			url := fmt.Sprintf("%s/stemcell?product_name=%s", host, product)
 			req, err := http.NewRequest("PUT", url, strings.NewReader(expectedStemcell))
 			Expect(err).ToNot(HaveOccurred())
 			resp, err := http.DefaultClient.Do(req)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
-			badgeUrl := fmt.Sprintf("http://localhost:8181/badge?product_name=%s", product)
+			badgeUrl := fmt.Sprintf("%s/badge?product_name=%s", host, product)
 			resp, err = http.Get(badgeUrl)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -164,7 +172,7 @@ var _ = Describe("StemcellTracker", func() {
 	})
 
 	It("returns 404 when GETing badge of non-existant product", func() {
-		badgeUrl := fmt.Sprintf("http://localhost:8181/badge?product_name=fake_product")
+		badgeUrl := fmt.Sprintf("%s/badge?product_name=fake_product", host)
 		resp, err := http.Get(badgeUrl)
 		Expect(err).ToNot(HaveOccurred())
 		Expect(resp.StatusCode).To(Equal(http.StatusNotFound))

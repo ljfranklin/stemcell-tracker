@@ -1,0 +1,4 @@
+---
+applications:
+- name: stemcell-tracker-hackday
+  command: stemcell-tracker
