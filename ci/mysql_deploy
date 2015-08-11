@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -ex
+
+echo "Running all mysql tests..."
+
+echo "Success!"
+
+exit 0

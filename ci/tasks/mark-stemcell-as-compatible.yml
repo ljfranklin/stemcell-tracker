@@ -1,0 +1,17 @@
+---
+platform: linux
+
+image: docker:///cloudfoundry/cf-mysql-ci
+
+inputs:
+  - name: stemcell-tracker-git
+  - name: stemcell-version-s3
+
+params:
+  STEMCELL_VERSION_FILE: stemcell-version-s3/stemcell_version
+  STEMCELL_TRACKER_URL:
+  PRODUCT_NAME:
+  PRODUCT_VERSION:
+
+run:
+  path: stemcell-tracker-resource/ci/mark-stemcell-as-compatible

@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -eux
+
+MY_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+WORKSPACE_DIR="$( cd "${MY_DIR}/../.." && pwd )"
+
+STEMCELL_VERSION_FILE="${STEMCELL_VERSION_FILE:?}"
+STEMCELL_TRACKER_URL="${STEMCELL_TRACKER_URL:?}"
+PRODUCT_NAME="${PRODUCT_NAME:?}"
+PRODUCT_VERSION="${PRODUCT_VERSION:?}"
+
+pushd "${WORKSPACE_DIR}"
+  STEMCELL_VERSION="$(cat ${STEMCELL_VERSION_FILE})"
+popd
+
+echo "Marking stemcell version ${STEMCELL_VERSION} as compatible with product ${PRODUCT_NAME} version ${PRODUCT_VERSION}"
+
+curl -X PUT -d "${STEMCELL_VERSION}" "${STEMCELL_TRACKER_URL}/stemcell?product_name=${PRODUCT_NAME}&product_version=${PRODUCT_VERSION}"
+
+echo "Success!"
