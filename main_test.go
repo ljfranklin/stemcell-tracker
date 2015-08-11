@@ -160,4 +160,11 @@ var _ = Describe("StemcellTracker", func() {
 			Expect(contents).To(ContainSubstring(expectedStemcell))
 		}
 	})
+
+	It("returns 404 when GETing badge of non-existant product", func() {
+		badgeUrl := fmt.Sprintf("http://localhost:8181/badge?product_name=fake_product")
+		resp, err := http.Get(badgeUrl)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
+	})
 })
