@@ -28,7 +28,7 @@ var _ = Describe("StemcellTracker", func() {
 		session.Terminate().Wait()
 	})
 
-	It("returns latest stemcell for the given products", func() {
+	It("PUTs then GETs the latest stemcell for the given products", func() {
 
 		products := map[string]string{
 			"cf-mysql": "3026",
@@ -37,25 +37,22 @@ var _ = Describe("StemcellTracker", func() {
 
 		for product, expectedStemcell := range products {
 			url := fmt.Sprintf("http://localhost:8181/stemcell?product_name=%s", product)
-			req, err := http.Get(url)
+			req, err := http.NewRequest("PUT", url, strings.NewReader(expectedStemcell))
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(req.StatusCode).To(Equal(http.StatusOK))
+			resp, err := http.DefaultClient.Do(req)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 
-			contents, err := ioutil.ReadAll(req.Body)
+			resp, err = http.Get(url)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+			contents, err := ioutil.ReadAll(resp.Body)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(string(contents)).To(Equal(expectedStemcell))
 		}
-	})
-
-	It("returns status created for updating stemcell value", func() {
-		url := fmt.Sprintf("http://localhost:8181/stemcell?product_name=cf-mysql")
-		req, err := http.NewRequest("PUT", url, strings.NewReader("3026"))
-		Expect(err).ToNot(HaveOccurred())
-
-		resp, err := http.DefaultClient.Do(req)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 	})
 })

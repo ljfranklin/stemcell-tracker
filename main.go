@@ -3,29 +3,43 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"io/ioutil"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
+type StemcellHandler struct {
+	stemcellMap map[string]string
+}
+
+func NewHandler() *StemcellHandler {
+	return &StemcellHandler{
+		stemcellMap: map[string]string{},
+	}
+}
+
+func (h *StemcellHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	productName := r.URL.Query()["product_name"][0]
 
 	switch r.Method {
 	case "GET":
-		stemcell := "3030"
-		if productName == "cf-mysql" {
-			stemcell = "3026"
-		}
-
+		stemcell := h.stemcellMap[productName]
 		fmt.Fprintf(w, stemcell)
 	case "PUT":
+		bodyContents, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		h.stemcellMap[productName] = string(bodyContents)
 		w.WriteHeader(http.StatusCreated)
 	default:
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, "Method not found", http.StatusBadRequest)
 	}
 }
 
 func main() {
 	fmt.Println("Hello Gophers!")
 
-	http.HandleFunc("/stemcell", handler)
+	http.Handle("/stemcell", NewHandler())
 	http.ListenAndServe(":8181", nil)
 }
